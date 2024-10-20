@@ -1,34 +1,46 @@
 import { Router } from "express";
 import { asyncHandler } from "./AsyncHandler.js";
-import { postComment, deleteComment } from "../controllers/CommentController.js";
-import { CommentError } from "../classes/CommentError.js";
+import { postComment, updateComment, deleteComment } from "../controllers/CommentController.js";
 
 const commentRouter = Router();
 
 commentRouter.post(
-  "/",
+  "/:id",
   asyncHandler(async (req, res) => {
     try {
-      const { articleID, content } = req.body;
       const userID = req.user.dataValues.id;
-      await postComment({ articleID, userID, content });
+      const articleID = req.params.id;
+      const { content } = req.body;
+      await postComment(articleID, userID, content);
       res.status(201).json();
-    } catch (err) {
-      throw new CommentError(400, err.message);
+    } catch (e) {
+      res.status(e.code ?? 500).json({ error: e.message });
     }
-    res.status(200).json({ message: "GET /comments" });
   })
 );
+
+commentRouter.put("/:id", asyncHandler(async (req, res) => {
+  try {
+    const userID = req.user.dataValues.id;
+    const commentID = req.params.id;
+    const { content } = req.body;
+    const comment = await updateComment(userID, commentID, content);
+    res.status(200).json(comment);
+  } catch (e) {
+    res.status(e.code ?? 500).json({ error: e.message });
+  }
+}));
 
 commentRouter.delete(
   "/:id",
   asyncHandler(async (req, res) => {
     try {
-      const { id } = req.params;
-      await deleteComment(id);
+      const userID = req.user.dataValues.id;
+      const commentID = req.params.id;
+      await deleteComment(userID, commentID);
       res.status(204).end();
-    } catch (err) {
-      throw new CommentError(400, err.message);
+    } catch (e) {
+      res.status(e.code ?? 500).json({ error: e.message });
     }
   })
 );

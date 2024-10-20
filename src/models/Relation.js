@@ -19,8 +19,8 @@ export const setupRelations = () => {
     defaultValue: 0,
   });
 
-  User.hasMany(Comment, { foreignKey: "userID" });
-  User.hasMany(Article, { foreignKey: "authorID" });
+  User.hasMany(Comment, { foreignKey: "userID", as: "comments" });
+  User.hasMany(Article, { foreignKey: "authorID", as: "articles" });
 
   Comment.belongsTo(User, {
     foreignKey: "userID",
@@ -41,5 +41,5 @@ export const setupRelations = () => {
     onUpdate: "RESTRICT",
     defaultValue: 0,
   });
-  Article.hasMany(Comment, { foreignKey: "articleID" });
+  Article.hasMany(Comment, { foreignKey: "articleID", as : "comments" });
 };

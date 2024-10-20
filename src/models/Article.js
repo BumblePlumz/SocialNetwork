@@ -5,7 +5,7 @@ export class Article extends Model {}
 Article.init({
     title: {
         type: DataTypes.STRING,
-        allowNull: true,
+        allowNull: false,
     },
     content: {
         type: DataTypes.STRING,

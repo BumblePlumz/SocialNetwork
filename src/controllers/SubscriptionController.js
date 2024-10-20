@@ -1,6 +1,21 @@
 import { Subscription } from '../models/Subscription.js';
 import { SubscriptionError } from '../classes/SubscriptionError.js';
 
+export const subscribe = async (userID, targetID) => {
+  try {
+    await Subscription.create({ ownerID: userID, targetID });
+  } catch (error) {
+    throw new SubscriptionError(500, error.message);
+  }
+};
+
+export const unsubscribe = async (userID, targetID) => {
+  try {
+    await Subscription.destroy({ where: { ownerID: userID, targetID: targetID } });
+  } catch (error) {
+    throw new SubscriptionError(500, error.message);
+  }
+};
 
 export const getSubscriptions = async (userID) => {
   try {
@@ -11,18 +26,5 @@ export const getSubscriptions = async (userID) => {
   }
 };
 
-export const subscribe = async (userID, targetID) => {
-  try {
-    const subscription = await Subscription.create({ ownerID: userID, targetID });
-  } catch (error) {
-    throw new SubscriptionError(500, error.message);
-  }
-};
 
-export const unsubscribe = async (userID, targetID) => {
-  try {
-    const subscription = await Subscription.destroy({ where: { ownerID: userID, targetID } });
-  } catch (error) {
-    throw new SubscriptionError(500, error.message);
-  }
-};
+

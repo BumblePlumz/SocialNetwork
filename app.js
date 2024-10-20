@@ -1,6 +1,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 import multer from "multer";
+import dotenv from "dotenv";
 import { sequelize } from "./src/data/index.js";
 import { setupRelations } from "./src/models/Relation.js";
 import { errorMiddleware } from "./src/middlewares/error.js";
@@ -13,6 +14,8 @@ import subscriptionRouter from "./src/router/SubscriptionRouter.js";
 
 // Configurations
 setupRelations();
+dotenv.config();
+
 await sequelize.sync({ force: false });
 const app = express();
 const port = 3000;
@@ -26,9 +29,9 @@ app.use("/api/auth", authRouter);
 app.use("/api/user", auth, userRouter);
 app.use("/api/article", auth, articleRouter);
 app.use("/api/comment", auth, commentRouter);
-app.use("/api/subscription", auth, subscriptionRouter);
+app.use("/api/subscribe", auth, subscriptionRouter);
 
 // Start server
 app.listen(port, () => {
-  console.log(`Server is running on http://localhostlocalhost:${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
 });

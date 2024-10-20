@@ -4,23 +4,25 @@ import { subscribe, unsubscribe } from '../controllers/SubscriptionController.js
 
 const subscriptionRouter = Router();
 
-subscriptionRouter.post('/subscribe', asyncHandler( async (req, res) => {
+subscriptionRouter.post('/:id', asyncHandler( async (req, res) => {
     try {
-        const { userID, followerID } = req.body;
-        await subscribe({ userID, followerID });
+        const userID = req.user.dataValues.id;
+        const targetID = req.params.id;
+        await subscribe(userID, targetID);
         res.status(201).json();
-    }catch(err){
-        throw new SubscriptionError(400, err.message);
+    }catch(e){
+        res.status(e.code ?? 500).json({ error: e.message });
     }
 }));
 
-subscriptionRouter.delete('/unsubscribe', asyncHandler( async (req, res) => {
+subscriptionRouter.delete('/:id', asyncHandler( async (req, res) => {
     try {
-        const { userID, followerID } = req.body;
-        await unsubscribe({ userID, followerID });
+        const userID = req.user.dataValues.id;
+        const targetID = req.params.id;
+        await unsubscribe(userID, targetID);
         res.status(204).end();
-    }catch(err){
-        throw new SubscriptionError(400, err.message);
+    }catch(e){
+        res.status(e.code ?? 500).json({ error: e.message });
     }
 }));
 

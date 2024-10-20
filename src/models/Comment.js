@@ -7,5 +7,6 @@ Comment.init({
         type: DataTypes.STRING,
         allowNull: false,
     },
-}, { sequelize, modelName: 'Comments' }
+}, { sequelize, modelName: 'Comment' }
 )
+

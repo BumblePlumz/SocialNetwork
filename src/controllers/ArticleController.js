@@ -1,70 +1,81 @@
 import { ArticleError } from "../classes/ArticleError.js";
 import { Article } from "../models/Article.js";
-import { Subscription } from "../models/Subscription.js";
+import { Comment } from "../models/Comment.js";
+import { IDsOfSubscriptions, isArticleAuthor } from "../utils.js";
+
+export const getArticles = async (userID) => {
+  try {
+    const articles = await Article.findAll({
+      where: { authorID: userID },
+      include: [{
+        model: Comment,
+        as: 'comments'
+      }]
+    });
+
+    return articles;
+  } catch (e) {
+    throw new ArticleError(e.code || 500, e.message);
+  }
+};
 
 export const getSubscribedArticles = async (userID) => {
   try {
-    const subscribedTo = await Subscription.findAll({
-      where: { ownerID: userID },
-    });
-    const articles = await Article.findAll({
-      where: { authorID: subscribedTo },
-    });
+    const articles = [];
+    const subscribeTo = await IDsOfSubscriptions(userID);
+    console.log(subscribeTo);
+
+    for(const authorID of subscribeTo) {
+      const article = await Article.findAll({
+        where: { authorID: authorID },
+        include: [{model: Comment, as: 'comments'}]
+      });
+      articles.push(...article);
+    }
+
     return articles;
-  } catch (error) {
-    throw new ArticleError(500, error.message);
+  } catch (e) {
+    throw new ArticleError(e.code || 500, e.message);
   }
 };
 
-export const getArticlesPublishedBy = async (id) => {
+export const createArticle = async (userID, newTitle, newContent) => {
   try {
-    const articles = await Article.findAll({
-      where: { authorID: parseInt(id) },
-    });
-    return articles;
-  } catch (error) {
-    throw new ArticleError(500, error.message);
-  }
-};
-
-export const createArticle = async (authorID, title, content) => {
-  try {
-    console.log("creating article");
-    // console.log(authorID, title, content);
-    console.log(title);
-    console.log(content);
-    console.log(authorID);
     await Article.create({
-      authorID: authorID,
-      title: title,
-      content: content,
+      authorID: userID,
+      title: newTitle,
+      content: newContent,
     });
-    console.log("article created");
-  } catch (error) {
-    throw new ArticleError(500, error.message);
+  } catch (e) {
+    throw new ArticleError(e.code || 500, e.message);
   }
 };
 
-export const updateArticle = async (id, title, content) => {
-  try {
-    await Article.update(
-      {
-        title: title,
-        content: content,
-      },
-      {
-        where: { id: id },
-      }
-    );
-  } catch (error) {
-    throw new ArticleError(500, error.message);
-  }
-};
-
-export const deleteArticle = async (id) => {
+export const updateArticle = async (userID, id, title, content) => {
   try {
     const article = await Article.findByPk(id);
-  } catch (error) {
-    throw new ArticleError(500, error.message);
+    if (!article) throw new ArticleError(404, "Article not found");
+    if (!isArticleAuthor(article.authorID, userID)) throw new ArticleError(403, "Unauthorized to update article");
+
+    await article.update({
+      title: title ?? article.title,
+      content: content ?? article.content,
+    });
+
+    return article;
+  } catch (e) {
+    throw new ArticleError(e.code || 500, e.message);
+  }
+};
+
+export const deleteArticle = async (userID, id) => {
+  try {
+    const article = await Article.findByPk(id);
+    if (!article) throw new ArticleError(404, "Article not found");
+    if (!isArticleAuthor(article.authorID, userID)) throw new ArticleError(403, "Unauthorized to delete article");
+
+    await article.destroy();
+  } catch (e) {
+    throw new ArticleError(e.code || 500, e.message);
   }
 };
